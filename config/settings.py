@@ -12,6 +12,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     DJANGO_DEBUG=(bool, False),
     DJANGO_ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
+    DJANGO_HTTPS=(bool, False),
+    DJANGO_CSRF_TRUSTED_ORIGINS=(list, []),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -82,6 +84,16 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+# `manage.py collectstatic` copies everything here on the server; nginx serves it.
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Behind nginx with a TLS certificate (deploy/): set DJANGO_HTTPS=true on the server only.
+CSRF_TRUSTED_ORIGINS = env("DJANGO_CSRF_TRUSTED_ORIGINS")
+if env("DJANGO_HTTPS"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

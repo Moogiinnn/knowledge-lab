@@ -1,0 +1,18 @@
+[Unit]
+Description=Knowledge Lab web application (gunicorn)
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+User=klab
+Group=klab
+WorkingDirectory=/srv/knowledge-lab
+ExecStart=/srv/knowledge-lab/.venv/bin/gunicorn config.wsgi:application \
+    --bind 127.0.0.1:8000 --workers 3 --timeout 60 --access-logfile -
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

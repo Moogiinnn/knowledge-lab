@@ -1,0 +1,17 @@
+[Unit]
+Description=Knowledge Lab code grader (runs submissions in Docker)
+After=network.target postgresql.service docker.service
+Requires=postgresql.service docker.service
+
+[Service]
+User=klab
+Group=klab
+# docker group: the grader starts one locked-down container per submission (apps/grading/runner.py)
+SupplementaryGroups=docker
+WorkingDirectory=/srv/knowledge-lab
+ExecStart=/srv/knowledge-lab/.venv/bin/python manage.py run_code_grader
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

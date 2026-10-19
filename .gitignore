@@ -10,3 +10,4 @@ data/
 results/
 # Word/Office lock files
 ~$*
+staticfiles/

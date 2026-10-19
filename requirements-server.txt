@@ -1,0 +1,6 @@
+# The web application and the code grader only (no research engine: numpy/torch are not
+# needed on the server). Versions as in requirements.lock.txt.
+Django==5.2.18
+django-environ==0.14.0
+psycopg[binary]==3.3.6
+gunicorn==23.0.0
