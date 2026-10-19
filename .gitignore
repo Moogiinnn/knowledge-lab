@@ -1,0 +1,12 @@
+.venv/
+.local/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+# Research exports hold (pseudonymised) student data: never commit any of it.
+exports/
+data/
+results/
+# Word/Office lock files
+~$*

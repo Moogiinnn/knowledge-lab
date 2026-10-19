@@ -1,0 +1,17 @@
+{
+  "events": "data/synthetic80/events.csv",
+  "graph": "data/synthetic80/graph.json",
+  "split": {"kind": "temporal", "train": 0.6, "val": 0.2},
+  "seed": 0,
+  "bootstrap": 1000,
+  "reference": "bkt",
+  "models": [
+    {"type": "global_rate"},
+    {"type": "concept_rate"},
+    {"type": "pfa"},
+    {"type": "bkt"},
+    {"type": "dkg", "name": "dkg_full", "epochs": 15}
+  ],
+  "ablation": true,
+  "explain": "dkg_full"
+}

@@ -1,0 +1,17 @@
+{
+  "events": "exports/sim-ds-120/events.csv",
+  "graph": "exports/sim-ds-120/graph.json",
+  "split": {"kind": "temporal", "train": 0.6, "val": 0.2},
+  "seed": 0,
+  "bootstrap": 1000,
+  "reference": "pfa",
+  "models": [
+    {"type": "global_rate"},
+    {"type": "concept_rate"},
+    {"type": "pfa"},
+    {"type": "bkt"},
+    {"type": "dkg", "name": "dkg_full", "epochs": 15}
+  ],
+  "ablation": true,
+  "explain": "dkg_full"
+}

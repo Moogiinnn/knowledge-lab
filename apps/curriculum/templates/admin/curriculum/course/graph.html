@@ -1,0 +1,97 @@
+{% extends "admin/base_site.html" %}
+{% block extrastyle %}{{ block.super }}
+<style>
+  .kg { --s-fill:#E1F5EE; --s-line:#0F6E56; --s-text:#085041; --a-fill:#EEEDFE; --a-line:#534AB7; --a-text:#3C3489;
+        --o-fill:#F1EFE8; --o-line:#5F5E5A; --o-text:#2C2C2A; --n-fill:#FFFFFF; --n-line:#BA7517; --n-text:#633806;
+        --pre:#444441; --rel:#185FA5; --ctl:#888780; }
+  html[data-theme="dark"] .kg { --pre:#D3D1C7; --rel:#85B7EB; --ctl:#B4B2A9; }
+  @media (prefers-color-scheme: dark) { html[data-theme="auto"] .kg { --pre:#D3D1C7; --rel:#85B7EB; --ctl:#B4B2A9; } }
+  .kg-wrap { overflow-x:auto; border:1px solid var(--hairline-color); border-radius:8px; background:var(--body-bg); margin:12px 0 20px; }
+  .kg-wrap svg { display:block; margin:0 auto; font-family:var(--font-family-primary); }
+  .kg .node rect { stroke-width:1.2; }
+  .kg .k-STRUCTURE rect { fill:var(--s-fill); stroke:var(--s-line); } .kg .k-STRUCTURE text { fill:var(--s-text); }
+  .kg .k-ALGORITHM rect { fill:var(--a-fill); stroke:var(--a-line); } .kg .k-ALGORITHM text { fill:var(--a-text); }
+  .kg .k-OTHER rect { fill:var(--o-fill); stroke:var(--o-line); } .kg .k-OTHER text { fill:var(--o-text); }
+  .kg .k- rect { fill:var(--n-fill); stroke:var(--n-line); stroke-dasharray:4 3; } .kg .k- text { fill:var(--n-text); }
+  .kg .cycle rect { stroke:#A32D2D; stroke-width:2.5; }
+  .kg .nm { font-size:13px; font-weight:600; } .kg .cd { font-size:11px; opacity:.8; }
+  .kg .e { fill:none; stroke-width:1.4; } .kg .e-PREREQUISITE { stroke:var(--pre); }
+  .kg .e-RELATED { stroke:var(--rel); stroke-dasharray:6 4; } .kg .e-CONTROL { stroke:var(--ctl); stroke-dasharray:2 4; }
+  .kg .unapproved { opacity:.4; } .kg .iso { font-size:12px; fill:var(--body-quiet-color); }
+  .kg-legend { display:flex; flex-wrap:wrap; gap:6px 18px; align-items:center; font-size:13px; }
+  .kg-legend span.sw { display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:-2px; margin-right:6px; border:1.2px solid; }
+  .kg-legend svg { vertical-align:middle; margin-right:6px; }
+  .kg-checks li { list-style:none; margin:2px 0; } .kg-ok { color:#3B6D11; } .kg-warn { color:#A32D2D; }
+  .kg table { margin-top:8px; }
+</style>
+{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Нүүр</a> ›
+  <a href="{% url 'admin:curriculum_course_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a> ›
+  {{ course.code }} › Concept граф
+</div>
+{% endblock %}
+{% block content %}
+<div class="kg">
+  <div class="kg-legend">
+    <span><span class="sw" style="background:var(--s-fill);border-color:var(--s-line)"></span>Өгөгдлийн бүтэц</span>
+    <span><span class="sw" style="background:var(--a-fill);border-color:var(--a-line)"></span>Алгоритм</span>
+    <span><span class="sw" style="background:var(--o-fill);border-color:var(--o-line)"></span>Бусад</span>
+    <span><span class="sw" style="background:var(--n-fill);border-color:var(--n-line);border-style:dashed"></span>Төрөл тогтоогоогүй</span>
+    <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" class="e e-PREREQUISITE"/></svg>PREREQUISITE</span>
+    <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" class="e e-RELATED"/></svg>RELATED</span>
+    <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" class="e e-CONTROL"/></svg>CONTROL (хяналт)</span>
+    <span style="opacity:.5">бүдэг = батлагдаагүй</span>
+  </div>
+  <p style="font-size:12px;color:var(--body-quiet-color);margin:6px 0 0">Дээрээс доош: prerequisite-ийн гүнээр эрэмбэлсэн. Concept эсвэл холбоос дээр хулганаа барьвал дэлгэрэнгүй гарна.</p>
+
+  {% if g.cycle %}<p class="errornote">Prerequisite цикл байна: {{ g.cycle|join:" → " }}. Улаан хүрээтэй concept-ууд энэ циклд оролцож байна.</p>{% endif %}
+
+  <div class="kg-wrap">
+  {% if g.nodes %}
+  <svg width="100%" style="max-width:{{ g.width }}px;min-width:min({{ g.width }}px, 900px)" viewBox="0 0 {{ g.width }} {{ g.height }}" role="img" aria-label="{{ course.code }} курсын concept граф">
+    <defs>
+      <marker id="m-PREREQUISITE" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="var(--pre)"/></marker>
+      <marker id="m-RELATED" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="var(--rel)"/></marker>
+      <marker id="m-CONTROL" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="var(--ctl)"/></marker>
+    </defs>
+    {% for d in g.edges %}
+    <path d="{{ d.path }}" class="e e-{{ d.edge.relation }}{% if not d.edge.teacher_approved %} unapproved{% endif %}" marker-end="url(#m-{{ d.edge.relation }})"><title>{{ d.edge.source.code }} → {{ d.edge.target.code }} · {{ d.edge.relation }}{% if d.edge.confidence %} · итгэл {{ d.edge.confidence }}/3{% endif %} · {% if d.edge.teacher_approved %}батлагдсан{% else %}батлагдаагүй{% endif %}{% if d.edge.note %} · {{ d.edge.note }}{% endif %}</title></path>
+    {% endfor %}
+    {% if g.isolated_y is not None %}<text class="iso" x="24" y="{{ g.isolated_y }}" dy="12">Холбоосгүй concept-ууд</text>{% endif %}
+    {% for n in g.nodes %}
+    <g class="node k-{{ n.concept.kind }}{% if n.in_cycle %} cycle{% endif %}">
+      <title>{{ n.concept.name }} ({{ n.concept.code }}) · {% if n.concept.kind %}{{ n.concept.get_kind_display }}{% else %}төрөл тогтоогоогүй{% endif %} · нийтлэгдсэн бодлого {{ n.questions }}</title>
+      <rect x="{{ n.x }}" y="{{ n.y }}" width="{{ node_w }}" height="{{ node_h }}" rx="8"/>
+      <text class="nm" x="{{ n.cx }}" y="{{ n.name_y }}" text-anchor="middle" dominant-baseline="central">{{ n.label }}</text>
+      <text class="cd" x="{{ n.cx }}" y="{{ n.code_y }}" text-anchor="middle" dominant-baseline="central">{{ n.concept.code }} · {{ n.questions }} бодлого</text>
+    </g>
+    {% endfor %}
+  </svg>
+  {% else %}
+  <p style="padding:16px">Энэ хичээлд concept алга. Граф оруулах: <code>manage.py import_graph {{ course.code }} concepts.csv edges.csv</code></p>
+  {% endif %}
+  </div>
+
+  <h2>Урьдчилсан бүртгэлийн нөхцөл (батлагдсан холбоосоор)</h2>
+  <ul class="kg-checks">
+    {% for c in checks %}<li class="{% if c.ok %}kg-ok{% else %}kg-warn{% endif %}">{% if c.ok %}✓{% else %}✗{% endif %} {{ c.mn }}</li>{% endfor %}
+  </ul>
+  {% if unapproved %}<p class="kg-warn">{{ unapproved }} холбоос батлагдаагүй байна. Шинжилгээнд зөвхөн батлагдсан холбоос орно.</p>{% endif %}
+
+  <h2>Холбоосууд ({{ edges|length }})</h2>
+  {% if edges %}
+  <table>
+    <thead><tr><th>Эх</th><th>Зорилт</th><th>Төрөл</th><th>Итгэл</th><th>W₀</th><th>Батлагдсан</th><th>Тэмдэглэл</th></tr></thead>
+    <tbody>
+    {% for e in edges %}
+      <tr><td>{{ e.source.code }}</td><td>{{ e.target.code }}</td><td>{{ e.relation }}</td><td>{{ e.confidence|default:"—" }}</td>
+          <td>{{ e.initial_weight }}</td><td>{% if e.teacher_approved %}✓{% else %}—{% endif %}</td><td>{{ e.note }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p>Холбоос алга.</p>{% endif %}
+  <p style="margin-top:16px"><a href="{% url 'admin:curriculum_conceptedge_changelist' %}?source__course__id__exact={{ course.pk }}">Холбоосуудыг засах</a> · <a href="{% url 'admin:curriculum_concept_changelist' %}?course__id__exact={{ course.pk }}">Concept-уудыг засах</a></p>
+</div>
+{% endblock %}

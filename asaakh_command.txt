@@ -1,0 +1,7 @@
+
+
+powershell -ExecutionPolicy Bypass -File D:\Doctor\knowledge-lab-v2\scripts\start-db.ps1
+
+
+
+D:\Doctor\knowledge-lab-v2\.venv\Scripts\python.exe D:\Doctor\knowledge-lab-v2\manage.py runserver 127.0.0.1:8000

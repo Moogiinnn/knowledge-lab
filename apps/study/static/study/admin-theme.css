@@ -1,0 +1,69 @@
+/* Teacher area (Django admin) in the student UI's navy palette. Only Django's own theme
+   variables are overridden, so admin pages keep their layout and behaviour. The selectors
+   mirror admin/css/base.css and dark_mode.css, and this file loads after both. */
+html[data-theme="light"], :root {
+  --primary: #2c4a7e;
+  --secondary: #1f3864;
+  --accent: #c9a227;
+  --primary-fg: #ffffff;
+  --body-fg: #1a1f2b;
+  --body-bg: #ffffff;
+  --body-quiet-color: #5f6470;
+  --body-medium-color: #2e3440;
+  --header-color: #c5cde0;
+  --header-branding-color: #ffffff;
+  --header-bg: #1f3864;
+  --header-link-color: #ffffff;
+  --breadcrumbs-fg: #c5cde0;
+  --breadcrumbs-link-fg: #ffffff;
+  --breadcrumbs-bg: #162a4d;
+  --link-fg: #24509a;
+  --link-hover-color: #1f3864;
+  --link-selected-fg: #1f3864;
+  --hairline-color: #e3e6eb;
+  --border-color: #d8dce3;
+  --error-fg: #a32d2d;
+  --message-success-bg: #eaf3de;
+  --message-warning-bg: #fbf7ea;
+  --message-error-bg: #fcebeb;
+  --darkened-bg: #f4f5f7;
+  --selected-bg: #e6ebf3;
+  --selected-row: #fbf7ea;
+  --button-bg: #1f3864;
+  --button-hover-bg: #162a4d;
+  --default-button-bg: #162a4d;
+  --default-button-hover-bg: #1f3864;
+  --object-tools-bg: #5f6470;
+  --object-tools-hover-bg: #1f3864;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #2c4a7e; --secondary: #162a4d; --primary-fg: #ffffff;
+    --body-fg: #e6e9ef; --body-bg: #11151c; --body-quiet-color: #9aa3b5; --body-medium-color: #c9cfdb;
+    --header-color: #9fb0d3; --header-bg: #162a4d; --breadcrumbs-bg: #10203b; --breadcrumbs-fg: #9fb0d3;
+    --link-fg: #9cbcff; --link-hover-color: #c5d6ff; --link-selected-fg: #9cbcff;
+    --hairline-color: #2e3542; --border-color: #3a4252; --darkened-bg: #1a1f29; --selected-bg: #232a36; --selected-row: #2e2812;
+    --message-success-bg: #173323; --message-warning-bg: #2e2812; --message-error-bg: #3a1d1a; --error-fg: #ffab9e;
+    --button-bg: #2c4a7e; --button-hover-bg: #3a5c96; --default-button-bg: #3a5c96; --default-button-hover-bg: #2c4a7e;
+  }
+}
+html[data-theme="dark"] {
+  --primary: #2c4a7e; --secondary: #162a4d; --primary-fg: #ffffff;
+  --body-fg: #e6e9ef; --body-bg: #11151c; --body-quiet-color: #9aa3b5; --body-medium-color: #c9cfdb;
+  --header-color: #9fb0d3; --header-bg: #162a4d; --breadcrumbs-bg: #10203b; --breadcrumbs-fg: #9fb0d3;
+  --link-fg: #9cbcff; --link-hover-color: #c5d6ff; --link-selected-fg: #9cbcff;
+  --hairline-color: #2e3542; --border-color: #3a4252; --darkened-bg: #1a1f29; --selected-bg: #232a36; --selected-row: #2e2812;
+  --message-success-bg: #173323; --message-warning-bg: #2e2812; --message-error-bg: #3a1d1a; --error-fg: #ffab9e;
+  --button-bg: #2c4a7e; --button-hover-bg: #3a5c96; --default-button-bg: #3a5c96; --default-button-hover-bg: #2c4a7e;
+}
+
+/* Branding: the same "KL" mark and two-line title as the student header. */
+#site-name a { display: inline-flex; align-items: center; gap: 10px; }
+.kl-logo { width: 34px; height: 34px; border-radius: 50%; background: #fff; display: block; }
+.kl-title { display: inline-flex; flex-direction: column; line-height: 1.2; }
+.kl-title small { font-size: .7rem; color: var(--header-color); font-weight: 400; }
+#header { padding-top: 10px; padding-bottom: 10px; }
+#site-name { font-weight: 600; }
+/* Module headers: navy instead of light blue, with the gold accent line. */
+.module h2, .module caption, .inline-group h2 { border-bottom: 2px solid var(--accent); }
+#header #site-name a:link, #header #site-name a:visited { color: var(--header-branding-color); }

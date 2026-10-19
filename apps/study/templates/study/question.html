@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static study_format %}
+{% block title %}{{ question.title }} · Knowledge Lab{% endblock %}
+{% block brand_sub %}{{ question.course.name }}{% endblock %}
+{% block main_class %}wide{% endblock %}
+{% block extra_head %}{% if question.kind == "CODE" %}<link rel="stylesheet" href="{% static 'vendor/codemirror-5.65.18/codemirror.css' %}">{% endif %}{% endblock %}
+{% block content %}
+<nav class="qbar" aria-label="Бодлогын навигаци">
+  <span><a href="{% url 'home' %}">Бодлогууд</a> › {{ question.course.name }} › <span>{{ question.title }}</span></span>
+  <span class="qnav">
+    {% if previous_id %}<a href="{% url 'question' previous_id %}" aria-label="Өмнөх бодлого">‹</a>{% else %}<span class="off" aria-hidden="true">‹</span>{% endif %}
+    <span>{{ position }}/{{ question_count }}</span>
+    {% if next_id %}<a href="{% url 'question' next_id %}" aria-label="Дараагийн бодлого">›</a>{% else %}<span class="off" aria-hidden="true">›</span>{% endif %}
+  </span>
+</nav>
+
+<div class="split">
+  <div>
+    <section class="card problem">
+      <div class="badges">
+        {% if question.kind == "CODE" %}<span class="badge outline">{{ version.get_language_display }}</span>{% else %}<span class="badge outline">Богино хариулт</span>{% endif %}
+        <span class="badge">Хүндрэл {{ version.difficulty }}/5</span>
+      </div>
+      <h1>{{ question.title }}</h1>
+      <div class="prompt">{{ version.prompt|prompt_format }}</div>
+
+      {% if hint_total %}
+        <div class="hints">
+          {% for h in hints %}<p class="hint"><strong>Hint {{ h.index|add:1 }}:</strong> {{ h.text }}</p>{% endfor %}
+          {% if next_hint is not None %}
+            <form method="post" action="{% url 'hint' question.id %}">
+              {% csrf_token %}<input type="hidden" name="hint_index" value="{{ next_hint }}">
+              <button type="submit" class="secondary">Hint харах ({{ next_hint|add:1 }}/{{ hint_total }})</button>
+            </form>
+          {% endif %}
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Миний оролдлогууд</h2>
+      {% if attempts %}
+        <table class="attempts">
+          <thead><tr><th>#</th><th>Үр дүн</th><th>Оноо</th><th>Хугацаа (UTC)</th></tr></thead>
+          <tbody>
+          {% for a in attempts %}
+            <tr>
+              <td>{{ a.event.attempt_index }}</td>
+              <td>{% if a.correct is None %}<span class="pill muted">Үнэлгээ хүлээж байна</span>{% elif a.correct %}<span class="pill ok">Зөв</span>{% else %}<span class="pill warn">Буруу</span>{% endif %}</td>
+              <td>{% if a.score is None %}—{% else %}{% widthratio a.score 1 100 %}%{% endif %}</td>
+              <td><time datetime="{{ a.event.submitted_at|date:'c' }}">{{ a.event.submitted_at|date:"Y-m-d H:i" }}</time></td>
+            </tr>
+            {% if a.feedback %}<tr class="feedback"><td></td><td colspan="3"{% if question.kind == "CODE" %} class="code-feedback"{% endif %}>{{ a.feedback }}</td></tr>{% endif %}
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="meta">Оролдлого хараахан алга.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="workspace">
+    {% if error %}<p class="notice error" role="alert">{{ error }}</p>{% endif %}
+    <p class="notice success" role="status" id="saved-notice" hidden></p>
+
+    <form method="post" action="{% url 'submit' question.id %}" id="answer-form" data-draft-key="{{ draft_key }}">
+      {% csrf_token %}
+      <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+      <input type="hidden" name="response_time_sec" id="response-time">
+      <section class="card answer-card">
+        {% if question.kind == "CODE" %}
+          <div class="editor-bar"><label for="answer" style="margin:0;font-weight:400">Код ({{ version.get_language_display }})</label>
+            <span>{% if version.language == "C" %}solution.c · C11 · gcc{% elif version.language == "CPP" %}solution.cpp · C++17 · g++{% else %}solution.py · Python 3.12{% endif %}</span></div>
+          <div class="editor-wrap">
+            <textarea name="answer" id="answer" rows="14" maxlength="50000" required spellcheck="false" class="code"
+                      data-mode="{% if version.language == 'C' %}text/x-csrc{% elif version.language == 'CPP' %}text/x-c++src{% else %}python{% endif %}">{{ answer }}</textarea>
+          </div>
+        {% else %}
+          <div class="pad">
+            <label for="answer" style="margin-top:0">Хариулт</label>
+            <textarea name="answer" id="answer" rows="3" maxlength="50000" required spellcheck="false">{{ answer }}</textarea>
+          </div>
+        {% endif %}
+        <div class="pad">
+          <fieldset class="assistance">
+            <legend>Энэ хариултад гадны тусламж ашигласан уу?</legend>
+            <label class="inline"><input type="radio" name="assistance_flag" value="no" {% if assistance_flag == "no" %}checked{% endif %}> Үгүй</label>
+            <label class="inline"><input type="radio" name="assistance_flag" value="yes" {% if assistance_flag == "yes" %}checked{% endif %}> Тийм</label>
+            <label class="inline"><input type="radio" name="assistance_flag" value="" {% if not assistance_flag %}checked{% endif %}> Хэлэхгүй</label>
+            <div class="types">
+              {% for value, label in assistance_choices %}
+                <label class="inline"><input type="checkbox" name="assistance_types" value="{{ value }}" {% if value in assistance_types %}checked{% endif %}> {{ label }}</label>
+              {% endfor %}
+            </div>
+            <p class="meta" style="margin:4px 0 0">Энэ мэдээлэл таны дүнд нөлөөлөхгүй.</p>
+          </fieldset>
+          <div class="submit-row">
+            <button type="submit" id="submit-btn">Хариулт илгээх</button>
+            <span class="timer" id="timer" aria-live="off"></span>
+          </div>
+        </div>
+      </section>
+    </form>
+
+    {% if latest %}
+      <section class="card result {% if latest.correct is None %}{% elif latest.correct %}ok{% else %}warn{% endif %}" aria-live="polite">
+        <div class="row">
+          <span class="result-title">
+            Сүүлийн оролдлого #{{ latest.event.attempt_index }}:
+            {% if latest.correct is None %}үнэлгээ хүлээж байна{% elif latest.correct %}зөв{% else %}буруу{% endif %}
+          </span>
+          {% if latest.correct is None %}<a href="{% url 'question' question.id %}">Шинэчлэх</a>{% elif latest.score is not None %}<span class="meta">{% widthratio latest.score 1 100 %}%</span>{% endif %}
+        </div>
+        {% if latest_tests %}
+          <div class="chips">{% for t in latest_tests %}<span class="{% if t.passed %}pass{% else %}fail{% endif %}">{{ t.label }} {% if t.passed %}✓{% else %}✗{% endif %}</span>{% endfor %}</div>
+        {% endif %}
+        {% if latest.feedback and not latest.correct %}<p class="feedback-text">{{ latest.feedback }}</p>{% endif %}
+      </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'study/question.js' %}" defer></script>
+{% if question.kind == "CODE" %}
+<script src="{% static 'vendor/codemirror-5.65.18/codemirror.js' %}" defer></script>
+<script src="{% static 'vendor/codemirror-5.65.18/clike.js' %}" defer></script>
+<script src="{% static 'vendor/codemirror-5.65.18/python.js' %}" defer></script>
+<script src="{% static 'vendor/codemirror-5.65.18/matchbrackets.js' %}" defer></script>
+<script src="{% static 'vendor/codemirror-5.65.18/closebrackets.js' %}" defer></script>
+<script src="{% static 'study/editor.js' %}" defer></script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% load static %}<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Knowledge Lab{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'study/logo.png' %}">
+  {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'study/site.css' %}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{% url 'home' %}">
+      <img class="brand-logo" src="{% static 'study/logo.png' %}" alt="Монгол Улсын Их Сургууль" width="36" height="36">
+      <span><span class="brand-name">Knowledge Lab</span><span class="brand-sub">{% block brand_sub %}Бодлого бодох систем{% endblock %}</span></span>
+    </a>
+    {% if user.is_authenticated %}
+      <form method="post" action="{% url 'logout' %}" class="logout" data-clear-drafts>
+        {% csrf_token %}<span class="who">{{ user.get_username }}</span>
+        <button type="submit" class="link">Гарах</button>
+      </form>
+    {% endif %}
+  </header>
+  <main class="{% block main_class %}{% endblock %}">
+    {% for message in messages %}
+      <p class="notice {{ message.tags }}" role="status">{{ message }}</p>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+  <script src="{% static 'study/drafts.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

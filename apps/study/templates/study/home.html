@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Миний хичээлүүд</h1>
+{% for item in courses %}
+  {% with enrollment=item.enrollment course=item.enrollment.course %}
+  <section class="card">
+    <div class="course-head">
+      <h2>{{ course.name }}</h2>
+      {% if course.consent_required %}
+        <a class="pill {% if enrollment.has_research_consent %}ok{% elif enrollment.consent_decided %}muted{% else %}warn{% endif %}"
+           href="{% url 'consent' course.id %}">
+          {% if enrollment.has_research_consent %}Судалгаанд оролцож байна{% elif enrollment.consent_decided %}Судалгаанд оролцохгүй{% else %}Зөвшөөрлийн сонголт хийнэ үү{% endif %}
+        </a>
+      {% endif %}
+    </div>
+    {% if not enrollment.consent_decided %}
+      <p>Бодлого бодохоос өмнө <a href="{% url 'consent' course.id %}">судалгааны мэдээлэлтэй танилцаж</a> сонголтоо хийнэ үү.</p>
+    {% elif item.questions %}
+      <ul class="questions">
+        {% for q in item.questions %}
+          <li>
+            <a href="{% url 'question' q.question.id %}">{{ q.question.title }}</a>
+            <span class="badge outline">{% if q.question.kind == "CODE" %}Код · {{ q.question.current_version.get_language_display }}{% else %}{{ q.question.get_kind_display }}{% endif %}</span>
+            <span class="meta">{% if q.stats %}{{ q.stats.attempts }} оролдлого{% else %}Эхлээгүй{% endif %}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="meta">Нээлттэй бодлого одоогоор алга.</p>
+    {% endif %}
+  </section>
+  {% endwith %}
+{% empty %}
+  <p>Та одоогоор ямар ч хичээлд бүртгэлгүй байна. Багшдаа хандана уу.</p>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+{% with course=enrollment.course %}
+<section class="card">
+  <h1>Судалгаанд оролцох зөвшөөрөл</h1>
+  <p class="meta">{{ course.name }}</p>
+  <div class="consent-text">{{ course.consent_text|default:"Судалгааны мэдээллийн текст оруулаагүй байна. Багшид мэдэгдэнэ үү."|linebreaks }}</div>
+  <p>Та оролцохгүй гэж сонгосон ч бодлогоо ердийнхөөрөө бодож, дүнгээ авна. Таны өгөгдөл судалгааны шинжилгээнд орохгүй. Сонголтоо хүссэн үедээ өөрчилж болно.</p>
+  <p class="meta">Одоогийн төлөв:
+    {% if enrollment.has_research_consent %}оролцож байна{% elif enrollment.consent_decided %}оролцохгүй{% else %}сонголт хийгээгүй{% endif %}</p>
+  <form method="post" class="actions">
+    {% csrf_token %}
+    {% if enrollment.has_research_consent %}
+      <button name="decision" value="WITHDRAWN" class="secondary">Зөвшөөрлөө цуцлах</button>
+    {% else %}
+      <button name="decision" value="GIVEN">Зөвшөөрч байна</button>
+      {% if not enrollment.consent_decided %}<button name="decision" value="DECLINED" class="secondary">Оролцохгүй</button>{% endif %}
+    {% endif %}
+  </form>
+</section>
+{% endwith %}
+{% endblock %}

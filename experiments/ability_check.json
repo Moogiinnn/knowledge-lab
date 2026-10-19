@@ -1,0 +1,14 @@
+{
+  "events": "data/synthetic80/events.csv",
+  "graph": "data/synthetic80/graph.json",
+  "split": {"kind": "temporal", "train": 0.6, "val": 0.2},
+  "seed": 0,
+  "bootstrap": 500,
+  "reference": "dkg_no_ability",
+  "models": [
+    {"type": "pfa"},
+    {"type": "bkt"},
+    {"type": "dkg", "name": "dkg_ability", "epochs": 15},
+    {"type": "dkg", "name": "dkg_no_ability", "epochs": 15, "ability": false}
+  ]
+}

@@ -1,0 +1,15 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'study/admin-theme.css' %}"><link rel="icon" type="image/png" href="{% static 'study/logo.png' %}">{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}"><img class="kl-logo" src="{% static 'study/logo.png' %}" alt="Монгол Улсын Их Сургууль" width="34" height="34"><span class="kl-title">Knowledge Lab<small>Багшийн хэсэг</small></span></a></div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
