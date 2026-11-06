@@ -97,6 +97,15 @@ sudo bash /srv/knowledge-lab/deploy/update.sh
 
 (Эхлээд нөөцлөөд, кодыг татаж, migrate хийгээд, үйлчилгээг дахин асаана.)
 
+### Мэдлэгийн төлвийн хуудас (заавал биш)
+
+Багшийн хэсэгт хиймэл (демо, туршилтын) курс бүрт **«DKG-AP харах»** гэсэн холбоос гарна. Тэр хуудас DKG-AP-ийг тухайн курсийн оролдлого дээр сургаж, оюутан бүрийн мэдлэгийн төлөв болон холбоосын мессежүүдийг харуулна. Бодит курс дээр хаалттай байна, учир нь урьдчилан бүртгэсэн судалгаа ажиглалтын судалгаа. Энэ хуудсанд судалгааны engine (numpy, torch CPU, ~800 MB) хэрэгтэй:
+
+```bash
+sudo -u klab bash -c "cd /srv/knowledge-lab && .venv/bin/pip install numpy torch --index-url https://download.pytorch.org/whl/cpu"
+sudo systemctl restart knowledge-lab-web
+```
+
 ## 10. Алдаа гарвал
 
 | Шинж тэмдэг | Шалгах |

@@ -299,6 +299,8 @@ class DKGModel(nn.Module):
                                                          "contribution": float(tm)}
                                  for c, w, kd, tm in zip(q_idx, a, k_q, terms)},
                     "messages": messages,
+                    # states written by this update (answered concepts and message targets), after clipping
+                    "k_after": {self.concepts[j]: float(v) for j, v in zip(update, new_vals)},
                 }  # fmt: skip
             yield it, p, explanation
 

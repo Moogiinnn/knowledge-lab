@@ -1,0 +1,99 @@
+{% extends "admin/base_site.html" %}
+{% block extrastyle %}{{ block.super }}
+<style>
+  .ks { --ev:#185FA5; --tr:#B4561F; --bar:#2A78D6; --track:var(--hairline-color); }
+  html[data-theme="dark"] .ks { --ev:#85B7EB; --tr:#F0A56E; --bar:#5B9BE6; }
+  @media (prefers-color-scheme: dark) { html[data-theme="auto"] .ks { --ev:#85B7EB; --tr:#F0A56E; --bar:#5B9BE6; } }
+  .ks .note { font-size:13px; color:var(--body-quiet-color); max-width:900px; }
+  .ks .synthetic { display:inline-block; padding:2px 8px; border-radius:10px; background:var(--message-warning-bg, #FFF4E5); font-size:12px; font-weight:600; }
+  .ks form.pick { margin:12px 0 16px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .ks table { width:100%; max-width:1100px; margin-bottom:20px; }
+  .ks td.num, .ks th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .ks .bar { position:relative; width:220px; height:12px; border-radius:6px; background:var(--track); }
+  .ks .bar span { position:absolute; left:0; top:0; bottom:0; border-radius:6px; background:var(--bar); }
+  .ks .bar i { position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--body-quiet-color); }
+  .ks .ok { color:#3B6D11; font-weight:600; } .ks .bad { color:#A32D2D; font-weight:600; }
+  .ks .ev { color:var(--ev); } .ks .tr { color:var(--tr); }
+  .ks ul.msgs { margin:0; padding-left:16px; } .ks ul.msgs li { list-style:disc; margin:0; font-size:12px; }
+  .ks .chg { font-size:12px; white-space:nowrap; }
+</style>
+{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Нүүр</a> ›
+  <a href="{% url 'admin:curriculum_course_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a> ›
+  {{ course.code }} › Мэдлэгийн төлөв
+</div>
+{% endblock %}
+{% block content %}
+<div class="ks">
+{% if not course.is_synthetic %}
+  <p class="errornote">Энэ хуудас зөвхөн хиймэл (демо, туршилтын) курст ажиллана. Урьдчилан бүртгэсэн судалгаа нь ажиглалтын судалгаа: өгөгдөл цуглуулах үед загварын тооцоог багшид харуулбал хэмжиж буй зүйлд нөлөөлнө. Бодит курсийн шинжилгээг <code>export_events</code>, <code>export_graph</code>, <code>python -m engine</code>-ээр хийнэ.</p>
+{% elif not engine %}
+  <p class="errornote">Судалгааны engine (numpy, torch) энэ серверт суугаагүй байна. Суулгах:</p>
+  <pre>.venv/bin/pip install numpy torch --index-url https://download.pytorch.org/whl/cpu</pre>
+  <p class="note">Дараа нь вэб үйлчилгээг дахин асаана: <code>sudo systemctl restart knowledge-lab-web</code>.</p>
+{% elif k.empty %}
+  <p class="synthetic">Хиймэл курс</p>
+  <p>Энэ курст үнэлэгдсэн оролдлого алга (эсвэл судалгааны зөвшөөрөл өгсөн оюутан алга). Оюутнаар нэвтэрч зөвшөөрлөө өгөөд хэдэн бодлого илгээнэ үү.</p>
+{% else %}
+  <p class="synthetic">Хиймэл курс · загварын тооцоо</p>
+  <p class="note">DKG-AP-ийг энэ курсийн {{ k.n_events }} үнэлэгдсэн оролдлого ({{ k.n_students }} оюутан, зөвхөн зөвшөөрөл өгсөн) дээр сургаж, оюутны оролдлогуудыг дарааллаар нь дахин тоглуулав.{% if k.ungraded %} Үнэлгээ хүлээгдэж буй {{ k.ungraded }} оролдлогыг оруулаагүй.{% endif %} Шинэ оролдлого ирэхэд дараагийн нээлтээр дахин сургана. Утгууд нь загварын тооцоо бөгөөд оюутны бодит мэдлэгийн баталгаа биш.</p>
+
+  <form class="pick" method="get">
+    <label for="student">Оюутан:</label>
+    <select name="student" id="student" onchange="this.form.submit()">
+      {% for s in k.students %}<option value="{{ s.id }}"{% if s.id == k.student %} selected{% endif %}>{{ s.label }} · {{ s.n }} оролдлого, {{ s.correct }} зөв</option>{% endfor %}
+    </select>
+    <noscript><input type="submit" value="Харах"></noscript>
+  </form>
+
+  <h2>{{ k.student_label }}: ойлголт бүрийн мэдлэгийн төлөв ({{ k.n_attempts }} оролдлогын дараа)</h2>
+  <table>
+    <thead><tr><th>Ойлголт</th><th>Төлөв k</th><th class="num">k</th><th class="num">Эхний утга</th><th class="num">Сүүлд өөрчлөгдсөн</th></tr></thead>
+    <tbody>
+    {% for c in k.concepts %}
+      <tr>
+        <td>{{ c.name }} <span class="note">({{ c.code }})</span></td>
+        <td><div class="bar" title="k = {{ c.k|floatformat:3 }}; зураас = эхний утга"><span style="width:{{ c.pct }}%"></span><i style="left:{% widthratio c.prior 1 100 %}%"></i></div></td>
+        <td class="num">{{ c.k|floatformat:3 }}</td>
+        <td class="num">{{ c.prior|floatformat:3 }}</td>
+        <td class="num">{% if c.last %}#{{ c.last }}{% else %}<span class="note">оролдлогогүй</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Сүүлийн оролдлогууд ба холбоосын мессежүүд</h2>
+  <p class="note"><span class="ev">Нотолгоо</span> нь хариултын алдааны тэмдгийг дагана: буруу хариулбал холбогдох ойлголтын үнэлгээг бууруулна. <span class="tr">Шилжилт</span> нь үргэлж ≥ 0: дадлага нь дараагийн ойлголтыг сурахад тусална. Тоо нь мэдлэгийн төлөвт (0–1) нэмэгдсэн хэмжээ.</p>
+  <table>
+    <thead><tr><th class="num">#</th><th>Бодлого</th><th>Хариу</th><th class="num">Таамаглал p</th><th>Бодлогын ойлголтууд: k өмнө → дараа</th><th>Холбоосын мессеж</th></tr></thead>
+    <tbody>
+    {% for a in k.attempts %}
+      <tr>
+        <td class="num">{{ a.n }}</td>
+        <td>{{ a.question }}</td>
+        <td>{% if a.y %}<span class="ok">✓ зөв</span>{% else %}<span class="bad">✗ буруу</span>{% endif %}</td>
+        <td class="num">{{ a.p|floatformat:2 }}</td>
+        <td>{% for c in a.concepts %}<div class="chg">{{ c.code }}: {{ c.k_before|floatformat:3 }} → {{ c.k_after|floatformat:3 }}</div>{% endfor %}</td>
+        <td>{% if a.messages %}<ul class="msgs">{% for m in a.messages %}<li class="{% if m.kind == 'evidence' %}ev{% else %}tr{% endif %}">{{ m.edge }} · {% if m.kind == 'evidence' %}нотолгоо{% else %}шилжилт{% endif %} {% if m.contribution > 0 %}+{% endif %}{{ m.contribution|floatformat:3 }}</li>{% endfor %}</ul>{% else %}<span class="note">—</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  {% if k.edges %}
+  <h2>Холбоосын сурсан жин (бүх оюутан)</h2>
+  <p class="note">W̄ᴱ: нотолгооны жин, W̄ᵀ: шилжилтийн жин, W̄₀: багшийн өгсөн эхний жин. Зөвхөн багшийн баталсан холбоосууд.</p>
+  <table>
+    <thead><tr><th>Холбоос</th><th>Төрөл</th><th class="num">W̄₀</th><th class="num ev">W̄ᴱ нотолгоо</th><th class="num tr">W̄ᵀ шилжилт</th></tr></thead>
+    <tbody>
+    {% for e in k.edges %}
+      <tr><td>{{ e.edge }}</td><td>{{ e.relation }}</td><td class="num">{{ e.w_bar0|floatformat:3 }}</td><td class="num">{{ e.w_bar|floatformat:3 }}</td><td class="num">{{ e.w_bar_transfer|floatformat:3 }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+{% endif %}
+</div>
+{% endblock %}

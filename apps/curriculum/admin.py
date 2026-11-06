@@ -23,6 +23,7 @@ from django.utils.html import format_html, format_html_join
 from apps.events.export import COLUMNS, export_rows
 from apps.grading.models import CodeTestCase
 
+from . import knowledge
 from .graph import NODE_H, NODE_W, layout, readiness_checks
 from .models import Concept, ConceptEdge, ConsentLog, Course, Enrollment, Question, QuestionConcept, QuestionVersion
 from .services import copy_as_draft, publish_version, retire_version
@@ -35,7 +36,8 @@ WEIGHT_TOLERANCE = 1e-6
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ["code", "name", "is_synthetic", "consent_required", "enrollment_count", "graph_link"]
+    list_display = ["code", "name", "is_synthetic", "consent_required", "enrollment_count", "graph_link",
+                    "knowledge_link"]  # fmt: skip
     search_fields = ["code", "name"]
     actions = ["export_research_csv"]
 
@@ -43,9 +45,37 @@ class CourseAdmin(admin.ModelAdmin):
     def graph_link(self, obj):
         return format_html('<a href="{}">Граф харах</a>', reverse("admin:curriculum_course_graph", args=[obj.pk]))
 
+    @admin.display(description="мэдлэгийн төлөв")
+    def knowledge_link(self, obj):
+        if not obj.is_synthetic:
+            return "—"
+        url = reverse("admin:curriculum_course_knowledge", args=[obj.pk])
+        return format_html('<a href="{}">DKG-AP харах</a>', url)
+
     def get_urls(self):
         view = self.admin_site.admin_view(self.graph_view)
-        return [path("<int:course_id>/graph/", view, name="curriculum_course_graph"), *super().get_urls()]
+        knowledge = self.admin_site.admin_view(self.knowledge_view)
+        return [
+            path("<int:course_id>/graph/", view, name="curriculum_course_graph"),
+            path("<int:course_id>/knowledge/", knowledge, name="curriculum_course_knowledge"),
+            *super().get_urls(),
+        ]
+
+    def knowledge_view(self, request, course_id):
+        """DKG-AP knowledge states and edge messages, for synthetic (demo/pilot) courses only."""
+        if not (request.user.has_perm("curriculum.view_concept") and request.user.has_perm("curriculum.view_enrollment")):
+            raise PermissionDenied
+        course = get_object_or_404(Course, pk=course_id)
+        context = {
+            **self.admin_site.each_context(request),
+            "opts": self.model._meta,
+            "title": f"{course.name}: мэдлэгийн төлөв (DKG-AP)",
+            "course": course,
+            "engine": knowledge.engine_available(),
+        }
+        if course.is_synthetic and context["engine"]:
+            context["k"] = knowledge.course_knowledge(course, request.GET.get("student"))
+        return TemplateResponse(request, "admin/curriculum/course/knowledge.html", context)
 
     def graph_view(self, request, course_id):
         """Read-only drawing of the course's concept graph, with the hypotheses' preconditions."""

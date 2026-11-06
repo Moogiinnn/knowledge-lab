@@ -7,7 +7,7 @@ included; synthetic events only on request. No user ids, answers or Django sessi
 import json
 
 from apps.accounts.pseudonym import pseudonymous_id
-from apps.curriculum.models import Course, Enrollment
+from apps.curriculum.models import ConceptEdge, Course, Enrollment
 
 from .models import SubmissionEvent
 from .queries import effective, with_final_grade
@@ -97,3 +97,22 @@ def export_rows(course: Course, *, include_synthetic: bool = False):
 def _nullable(value):
     return "" if value is None else value
 
+
+def graph_dict(course: Course) -> dict:
+    """The course's concepts and concept edges, as `export_graph` writes them for the engine."""
+    edges = ConceptEdge.objects.filter(source__course=course).select_related("source", "target")
+    return {
+        "course": course.code,
+        "concepts": [{"code": c.code, "name": c.name, "kind": c.kind} for c in course.concepts.order_by("code")],
+        "edges": [
+            {
+                "source": e.source.code,
+                "target": e.target.code,
+                "relation": e.relation,
+                "initial_weight": e.initial_weight,
+                "approved": e.teacher_approved,
+                "confidence": e.confidence,
+            }
+            for e in edges.order_by("source__code", "target__code")
+        ],
+    }

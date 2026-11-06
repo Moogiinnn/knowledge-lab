@@ -71,13 +71,28 @@ def load_graph(path: str | Path, *, approved_only: bool = True) -> tuple[list[st
 
 def load_dataset(events_csv: str | Path, graph_json: str | Path, *, approved_edges_only: bool = True) -> Dataset:
     raw = Path(events_csv).read_bytes()
-    concepts, raw_edges = load_graph(graph_json, approved_only=approved_edges_only)
+    rows = list(csv.DictReader(raw.decode("utf-8").splitlines()))
+    graph = json.loads(Path(graph_json).read_text(encoding="utf-8"))
+    return dataset_from_rows(rows, graph, approved_edges_only=approved_edges_only,
+                             source_sha256=hashlib.sha256(raw).hexdigest())  # fmt: skip
+
+
+def _cell(value) -> str:
+    """CSV cells are strings; rows built in memory may hold numbers or None."""
+    return "" if value is None else str(value)
+
+
+def dataset_from_rows(rows: list[dict], graph: dict, *, approved_edges_only: bool = True,
+                      source_sha256: str = "") -> Dataset:
+    """The same dataset as load_dataset, from export rows and a graph dict already in memory."""  # fmt: skip
+    concepts = [c["code"] for c in graph["concepts"]]
+    raw_edges = [e for e in graph["edges"] if e.get("approved") or not approved_edges_only]
     cindex = {code: i for i, code in enumerate(concepts)}
     edges = [
         Edge(cindex[e["source"]], cindex[e["target"]], e["relation"], float(e["initial_weight"])) for e in raw_edges
     ]
 
-    rows = list(csv.DictReader(raw.decode("utf-8").splitlines()))
+    rows = [{k: _cell(v) for k, v in r.items()} for r in rows]
     rows.sort(key=lambda r: (r["timestamp"], r["event_id"]))  # the replay order of the guide (§7)
     dropped = {"ungraded": 0}
     interactions, questions = [], {}
@@ -107,4 +122,4 @@ def load_dataset(events_csv: str | Path, graph_json: str | Path, *, approved_edg
                 difficulty=int(row["difficulty"]),
             )
         )
-    return Dataset(interactions, concepts, edges, list(questions), hashlib.sha256(raw).hexdigest(), dropped)
+    return Dataset(interactions, concepts, edges, list(questions), source_sha256, dropped)
