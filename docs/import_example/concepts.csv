@@ -1,0 +1,9 @@
+﻿code,name,kind,description
+array,Массив,STRUCTURE,"Индексээр хандах дараалал; элемент хадгалах, гүйлгэх."
+stack,Стек,STRUCTURE,"LIFO хийсвэр бүтэц; push, pop, top."
+queue,Дараалал,STRUCTURE,"FIFO хийсвэр бүтэц; enqueue, dequeue, front."
+graph,Граф ба дүрслэл,STRUCTURE,"Орой, ирмэг, чиглэлтэй/чиглэлгүй граф, зам, холбоос; adjacency list/matrix."
+bfs,Өргөнөөр хайх (BFS),ALGORITHM,FIFO frontier бүхий давхаргат хайлт; ижил жинтэй графын хамгийн богино зам.
+dfs,Гүнээр хайх (DFS),ALGORITHM,Рекурс эсвэл explicit stack-аар гүн рүү хайх; орох/гарах үе.
+prefix-sum,Prefix sum,OTHER,Массивын хуримтлагдсан нийлбэр; интервал нийлбэр болон DP шилжилт хурдасгах.
+recursion,Рекурс,OTHER,"Суурь нөхцөл, жижиг дэд асуудал, буцалтын үр дүн."

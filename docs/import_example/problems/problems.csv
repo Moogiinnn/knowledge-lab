@@ -1,0 +1,4 @@
+﻿code,title,kind,difficulty,concepts,language,accepted,hints,note
+bfs-shortest,Хамгийн богино зам (BFS),CODE,3,queue:0.4;bfs:0.4;graph:0.2,CPP,,Дараалал ашиглан BFS хий.|dist массивыг -1-ээр эхлүүл.,жишээ
+prefix-sum-queries,Хэсгийн нийлбэрийн асуулга,CODE,2,array:0.3;prefix-sum:0.7,CPP,,Урьдчилан нийлбэр pre[i] = a[1]+…+a[i] тооцоол.|Хариу pre[r]-pre[l-1]; 64 битийн тоо ашигла.,жишээ
+stack-order,Стекийн дараалал,SHORT,1,stack,,2,Стек LIFO зарчмаар ажилладаг.|Эхний pop() 3-ыг авсан.,жишээ; жингүй = тэнцүү жин

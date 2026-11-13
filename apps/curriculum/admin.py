@@ -164,17 +164,33 @@ class EnrollmentAdmin(admin.ModelAdmin):
 
 @admin.register(Concept)
 class ConceptAdmin(admin.ModelAdmin):
-    list_display = ["code", "name", "kind", "course", "prerequisites", "dependents"]
+    list_display = ["code", "name", "kind", "course", "prerequisites", "dependents", "related"]
     list_filter = ["course", "kind"]
     search_fields = ["code", "name"]
 
-    @admin.display(description="урьдчилсан мэдлэг")
-    def prerequisites(self, obj):
-        return ", ".join(e.source.code for e in obj.incoming_edges.select_related("source")) or "—"
+    @staticmethod
+    def _codes(edges, end: str) -> str:
+        """Concept codes at one end of the edges; an unapproved edge is marked with "?"."""
+        return ", ".join(getattr(e, end).code + ("" if e.teacher_approved else "?") for e in edges) or "—"
 
-    @admin.display(description="дараагийн concept")
+    @admin.display(description="урьдчилсан нөхцөл (PRE →)")
+    def prerequisites(self, obj):
+        edges = obj.incoming_edges.filter(relation=ConceptEdge.Relation.PREREQUISITE).select_related("source")
+        return self._codes(edges, "source")
+
+    @admin.display(description="дараагийн (→ PRE)")
     def dependents(self, obj):
-        return ", ".join(e.target.code for e in obj.outgoing_edges.select_related("target")) or "—"
+        edges = obj.outgoing_edges.filter(relation=ConceptEdge.Relation.PREREQUISITE).select_related("target")
+        return self._codes(edges, "target")
+
+    @admin.display(description="хамааралтай (REL, CONTROL)")
+    def related(self, obj):
+        other = ~Q(relation=ConceptEdge.Relation.PREREQUISITE)
+        parts = [f"{e.source.code}{'' if e.teacher_approved else '?'} →" + (" (CONTROL)" if e.relation == "CONTROL" else "")
+                 for e in obj.incoming_edges.filter(other).select_related("source")]  # fmt: skip
+        parts += [f"→ {e.target.code}{'' if e.teacher_approved else '?'}" + (" (CONTROL)" if e.relation == "CONTROL" else "")
+                  for e in obj.outgoing_edges.filter(other).select_related("target")]  # fmt: skip
+        return ", ".join(parts) or "—"
 
 
 @admin.register(ConceptEdge)

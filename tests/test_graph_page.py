@@ -80,3 +80,21 @@ def test_graph_page_needs_permission(client, gcourse):
     client.logout()
     response = client.get(reverse("admin:curriculum_course_graph", args=[gcourse.pk]))
     assert response.status_code == 302 and "login" in response["Location"]
+
+
+def test_concept_list_separates_prerequisites_from_related(gcourse):
+    from django.contrib.admin.sites import site
+
+    from apps.curriculum.admin import ConceptAdmin
+
+    make_graph(gcourse, ["array", "queue", "graph", "bfs", "linked-list"], [
+        ("queue", "bfs", "PREREQUISITE"), ("graph", "bfs", "RELATED"), ("array", "linked-list", "RELATED"),
+    ])  # fmt: skip
+    c = {x.code: x for x in Concept.objects.filter(course=gcourse)}
+    ConceptEdge.objects.create(source=c["array"], target=c["queue"], relation="PREREQUISITE", teacher_approved=False)
+    admin = ConceptAdmin(Concept, site)
+    assert admin.prerequisites(c["bfs"]) == "queue"  # graph→bfs is RELATED, not a prerequisite
+    assert admin.related(c["bfs"]) == "graph →"
+    assert admin.prerequisites(c["linked-list"]) == "—" and admin.related(c["linked-list"]) == "array →"
+    assert admin.dependents(c["array"]) == "queue?"  # unapproved edge is marked
+    assert admin.related(c["array"]) == "→ linked-list"
