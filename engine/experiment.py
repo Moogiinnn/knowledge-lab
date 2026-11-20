@@ -25,11 +25,13 @@ import torch
 
 from . import metrics
 from .baselines import BKT, PFA, ConceptRate, GlobalRate
+from .deep_baselines import DKTBaseline, GKTBaseline
 from .data import load_dataset
 from .dkg import DKG
 from .split import make_split
 
-REGISTRY = {"global_rate": GlobalRate, "concept_rate": ConceptRate, "pfa": PFA, "bkt": BKT, "dkg": DKG}
+REGISTRY = {"global_rate": GlobalRate, "concept_rate": ConceptRate, "pfa": PFA, "bkt": BKT, "dkg": DKG,
+            "dkt": DKTBaseline, "gkt": GKTBaseline}
 
 # guide §9: remove one mechanism at a time, plus the dynamic-W × adaptive-α 2×2.
 ABLATIONS = {

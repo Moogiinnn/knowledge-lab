@@ -1,0 +1,20 @@
+{
+  "events": "exports/sim-ds-120/events.csv",
+  "graph": "exports/sim-ds-120/graph.json",
+  "split": {"kind": "temporal", "train": 0.6, "val": 0.2},
+  "seed": 0,
+  "bootstrap": 1000,
+  "reference": "dkg_full",
+  "models": [
+    {"type": "pfa"},
+    {"type": "bkt"},
+    {"type": "dkg", "name": "dkg_full", "epochs": 15},
+    {"type": "dkt", "name": "dkt_s0", "seed": 0}, {"type": "dkt", "name": "dkt_s1", "seed": 1},
+    {"type": "dkt", "name": "dkt_s2", "seed": 2}, {"type": "dkt", "name": "dkt_s3", "seed": 3},
+    {"type": "dkt", "name": "dkt_s4", "seed": 4},
+    {"type": "gkt", "name": "gkt_s0", "seed": 0}, {"type": "gkt", "name": "gkt_s1", "seed": 1},
+    {"type": "gkt", "name": "gkt_s2", "seed": 2}, {"type": "gkt", "name": "gkt_s3", "seed": 3},
+    {"type": "gkt", "name": "gkt_s4", "seed": 4}
+  ],
+  "ablation": false
+}
