@@ -1,0 +1,16 @@
+{
+  "events": "data/external/assist2009/events.csv",
+  "graph": "data/external/assist2009/graph_data.json",
+  "split": {"kind": "temporal", "train": 0.6, "val": 0.2},
+  "seed": 0,
+  "bootstrap": 1000,
+  "reference": "ksgdm_data",
+  "models": [
+    {"type": "global_rate"},
+    {"type": "pfa"},
+    {"type": "bkt"},
+    {"type": "dkg", "name": "ksgdm_data", "epochs": 15, "decay": false},
+    {"type": "gkt", "name": "gkt_s0", "seed": 0, "max_epochs": 10, "hidden": [32], "lr": [0.005]}, {"type": "gkt", "name": "gkt_s1", "seed": 1, "max_epochs": 10, "hidden": [32], "lr": [0.005]}, {"type": "gkt", "name": "gkt_s2", "seed": 2, "max_epochs": 10, "hidden": [32], "lr": [0.005]}
+  ],
+  "ablation": false
+}

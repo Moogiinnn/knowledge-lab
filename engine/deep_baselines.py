@@ -81,10 +81,12 @@ class _PyktBaseline:
     batch_students = 16
     pad = 0
 
-    def __init__(self, seed: int = 0, max_epochs: int | None = None):
+    def __init__(self, seed: int = 0, max_epochs: int | None = None, hidden=None, lr=None):
         self.seed = seed
         if max_epochs:
             self.max_epochs = max_epochs
+        if hidden or lr:  # a smaller grid for large data (the defaults stay as class attributes)
+            self.grid = {"hidden": tuple(hidden or self.grid["hidden"]), "lr": tuple(lr or self.grid["lr"])}
 
     def _net(self, n_concepts: int, hidden: int, data: Dataset):
         raise NotImplementedError

@@ -11,3 +11,4 @@ results/
 # Word/Office lock files
 ~$*
 staticfiles/
+data/external/
